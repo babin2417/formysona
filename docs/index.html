@@ -1,8 +1,8 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>For You</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,103 +19,92 @@
     --wax:#8f2436;
     --wax-dark:#6f1a29;
     --ink:#3a2e26;
+    --app-h:100vh;
   }
+  @supports (height:100dvh){ :root{ --app-h:100dvh; } }
 
   *{box-sizing:border-box;}
 
   html,body{
     margin:0;
     padding:0;
-    height:100%;
+    width:100%;
+    min-height:var(--app-h);
     background:var(--bg-deep);
-    overflow:hidden;
     font-family:"EB Garamond", serif;
-  }
-
-  body{
-    position:relative;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
     color:var(--cream);
+    overflow:hidden;
   }
+  /* once the letter is showing, let the page scroll if the text is long */
+  body.letter-view{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
 
   /* ---------- Night sky ---------- */
   #sky{
     position:fixed;
     inset:0;
-    background:
-      radial-gradient(ellipse at 50% 30%, var(--bg-glow) 0%, var(--bg-mid) 45%, var(--bg-deep) 100%);
+    background:radial-gradient(ellipse at 50% 30%, var(--bg-glow) 0%, var(--bg-mid) 45%, var(--bg-deep) 100%);
     z-index:0;
+    overflow:hidden;
   }
   .star{
     position:absolute;
-    width:2px;
-    height:2px;
+    width:2px; height:2px;
     background:#fff;
     border-radius:50%;
     opacity:.5;
     animation:twinkle 4s ease-in-out infinite;
   }
-  @keyframes twinkle{
-    0%,100%{opacity:.15;}
-    50%{opacity:.9;}
-  }
+  @keyframes twinkle{ 0%,100%{opacity:.15;} 50%{opacity:.9;} }
   .moonglow{
     position:absolute;
-    top:8%;
+    top:6%;
     left:50%;
-    width:520px;
-    height:520px;
+    width:min(120vw,520px);
+    height:min(120vw,520px);
     transform:translateX(-50%);
     background:radial-gradient(circle, rgba(203,161,88,0.18) 0%, rgba(203,161,88,0) 70%);
     pointer-events:none;
   }
 
-  /* ---------- Scene wrapper ---------- */
+  /* ---------- Stage 1: envelope scene ---------- */
   #scene{
-    position:relative;
+    position:fixed;
+    inset:0;
     z-index:2;
-    width:100%;
-    height:100%;
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
+    gap:clamp(28px,8vh,64px);
+    padding:max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
     perspective:1400px;
+    transition:opacity .6s ease;
   }
+  body.letter-view #scene{ opacity:0; pointer-events:none; }
 
   .prompt{
-    position:absolute;
-    bottom:9%;
-    left:50%;
-    transform:translateX(-50%);
     font-family:"Cormorant Garamond", serif;
     font-style:italic;
-    font-size:clamp(14px,2.4vw,18px);
+    font-size:clamp(14px,4vw,18px);
     letter-spacing:.03em;
     color:var(--gold-light);
-    opacity:.85;
-    animation:pulseHint 2.6s ease-in-out infinite;
     text-align:center;
-    width:100%;
-    padding:0 20px;
+    max-width:32ch;
+    animation:pulseHint 2.6s ease-in-out infinite;
   }
-  @keyframes pulseHint{
-    0%,100%{opacity:.55;}
-    50%{opacity:.95;}
-  }
+  @keyframes pulseHint{ 0%,100%{opacity:.55;} 50%{opacity:.95;} }
 
   /* ---------- Envelope ---------- */
   #envelope-wrap{
     position:relative;
     transition:transform 1.1s cubic-bezier(.6,0,.2,1), opacity .9s ease;
   }
+  body.letter-view #envelope-wrap{ opacity:0; transform:scale(.9); }
 
   #envelope{
     position:relative;
-    width:min(78vw,360px);
-    height:min(55vw,250px);
+    width:min(82vw, 44vh, 360px);
+    aspect-ratio:36/25;
     cursor:pointer;
     -webkit-tap-highlight-color:transparent;
   }
@@ -127,14 +116,13 @@
 
   .env-shadow{
     position:absolute;
-    bottom:-28px;
+    bottom:-7%;
     left:6%;
     width:88%;
-    height:24px;
+    height:10%;
     background:radial-gradient(ellipse, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 70%);
     filter:blur(2px);
   }
-
   .env-body{
     position:absolute;
     inset:0;
@@ -142,8 +130,6 @@
     border-radius:3px;
     box-shadow:0 18px 40px rgba(0,0,0,.45);
   }
-
-  /* side + bottom pocket, drawn as a V shape sitting on top of the body */
   .env-pocket{
     position:absolute;
     inset:0;
@@ -151,20 +137,18 @@
     background:linear-gradient(180deg, var(--cream-dark) 0%, #d8c9a1 100%);
     clip-path:polygon(0% 100%, 50% 38%, 100% 100%);
   }
-
   .env-name{
     position:absolute;
-    left:0; right:0;
-    bottom:14%;
+    left:6%; right:6%;
+    bottom:13%;
     text-align:center;
     z-index:1;
     font-family:"Petit Formal Script", cursive;
-    font-size:clamp(20px,4vw,26px);
+    font-size:clamp(15px,5.2vw,26px);
+    line-height:1.2;
     color:var(--ink);
     opacity:.8;
   }
-
-  /* top flap, hinged at the top edge */
   .env-flap{
     position:absolute;
     top:0; left:0;
@@ -178,35 +162,27 @@
     z-index:4;
     box-shadow:0 2px 10px rgba(0,0,0,.15);
   }
-
   .wax-seal{
     position:absolute;
-    left:50%;
-    top:52%;
-    width:52px;
-    height:52px;
+    left:50%; top:52%;
+    width:clamp(38px,13%,52px);
+    aspect-ratio:1;
     transform:translate(-50%,-50%);
     border-radius:50%;
     background:radial-gradient(circle at 35% 30%, #b6394d, var(--wax) 55%, var(--wax-dark) 100%);
     box-shadow:0 3px 8px rgba(0,0,0,.4), inset 0 -3px 6px rgba(0,0,0,.3), inset 0 2px 4px rgba(255,255,255,.15);
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    display:flex; align-items:center; justify-content:center;
     z-index:5;
     transition:opacity .4s ease, transform .4s ease;
   }
-  .wax-seal svg{ width:24px; height:24px; opacity:.9; }
+  .wax-seal svg{ width:48%; height:48%; opacity:.9; }
 
-  /* the letter card that slides up out of the envelope */
   .letter-card{
     position:absolute;
-    left:50%;
-    bottom:8%;
-    width:82%;
-    height:78%;
+    left:50%; bottom:8%;
+    width:82%; height:78%;
     transform:translate(-50%,10%) scale(.92);
-    background:
-      repeating-linear-gradient(var(--cream), var(--cream) 27px, #ece0c4 28px);
+    background:repeating-linear-gradient(var(--cream), var(--cream) 27px, #ece0c4 28px);
     background-color:var(--cream);
     border-radius:2px;
     box-shadow:0 10px 30px rgba(0,0,0,.35);
@@ -215,86 +191,68 @@
     transition:transform 1.1s cubic-bezier(.5,0,.15,1) .15s, opacity .6s ease .15s;
   }
 
-  /* ---------- OPEN state ---------- */
-  #envelope.open .env-flap{
-    transform:rotateX(-178deg);
-    z-index:1;
-  }
-  #envelope.open .wax-seal{
-    opacity:0;
-    transform:translate(-50%,-50%) scale(.6);
-  }
-  #envelope.open .letter-card{
-    opacity:1;
-    transform:translate(-50%,-58%) scale(1);
-  }
+  #envelope.open .env-flap{ transform:rotateX(-178deg); z-index:1; }
+  #envelope.open .wax-seal{ opacity:0; transform:translate(-50%,-50%) scale(.6); }
+  #envelope.open .letter-card{ opacity:1; transform:translate(-50%,-58%) scale(1); }
 
-  /* ---------- Stage 2: full letter reading view ---------- */
-  body.letter-view #envelope-wrap{
-    opacity:0;
-    transform:scale(.9) translateY(10px);
-    pointer-events:none;
-  }
-  body.letter-view .prompt{ opacity:0; transition:opacity .4s ease; }
-
-  #reading{
+  /* ---------- Stage 2: the letter ---------- */
+  #reading-wrap{
     position:relative;
     z-index:3;
-    width:min(92vw,620px);
-    max-height:82vh;
-    margin:0 auto;
-    background:
-      repeating-linear-gradient(var(--cream), var(--cream) 31px, #ece0c4 32px);
+    min-height:var(--app-h);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(20px,5vw,48px) clamp(14px,4vw,32px);
+    padding-top:max(clamp(20px,5vw,48px), calc(env(safe-area-inset-top) + 64px));
+    padding-bottom:max(clamp(20px,5vw,48px), env(safe-area-inset-bottom));
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .9s ease .1s;
+  }
+  body.letter-view #reading-wrap{ opacity:1; pointer-events:auto; }
+
+  #reading{
+    width:100%;
+    max-width:620px;
+    background:repeating-linear-gradient(var(--cream), var(--cream) 31px, #ece0c4 32px);
     background-color:var(--cream);
     color:var(--ink);
     border-radius:3px;
     box-shadow:0 30px 70px rgba(0,0,0,.55);
-    padding:clamp(28px,6vw,56px) clamp(24px,7vw,64px);
-    opacity:0;
-    transform:translateY(24px) scale(.97);
-    transition:opacity .9s ease .1s, transform .9s cubic-bezier(.2,.7,.2,1) .1s;
-    overflow-y:auto;
+    padding:clamp(24px,6vw,56px) clamp(20px,6vw,60px);
+    transform:translateY(24px) scale(.98);
+    transition:transform .9s cubic-bezier(.2,.7,.2,1) .1s;
   }
-  body.letter-view #reading{
-    opacity:1;
-    transform:translateY(0) scale(1);
-  }
-
-  #reading::-webkit-scrollbar{ width:6px; }
-  #reading::-webkit-scrollbar-thumb{ background:var(--cream-dark); border-radius:3px; }
+  body.letter-view #reading{ transform:none; }
 
   .letter-heading{
     font-family:"Cormorant Garamond", serif;
     font-style:italic;
     font-weight:500;
-    font-size:clamp(20px,4vw,26px);
-    margin:0 0 22px 0;
+    font-size:clamp(19px,5.4vw,26px);
+    margin:0 0 20px 0;
     color:var(--wax);
-    letter-spacing:.01em;
   }
-
   #letter-body{
-    font-family:"EB Garamond", serif;
-    font-size:clamp(16px,2.6vw,19px);
-    line-height:1.85;
+    font-size:clamp(16px,4.3vw,19px);
+    line-height:1.8;
+    overflow-wrap:break-word;
   }
   #letter-body p{ margin:0 0 1.1em 0; }
-
   .signature{
-    margin-top:1.6em;
+    margin-top:1.2em;
     font-family:"Petit Formal Script", cursive;
-    font-size:clamp(24px,5vw,32px);
+    font-size:clamp(26px,8vw,34px);
     color:var(--wax);
   }
 
   /* ---------- Controls ---------- */
   #controls{
     position:fixed;
-    top:22px;
-    right:22px;
-    z-index:5;
-    display:flex;
-    gap:10px;
+    top:max(16px, env(safe-area-inset-top));
+    right:max(16px, env(safe-area-inset-right));
+    z-index:10;
     opacity:0;
     pointer-events:none;
     transition:opacity .6s ease .6s;
@@ -302,51 +260,44 @@
   body.letter-view #controls{ opacity:1; pointer-events:auto; }
 
   .ctrl-btn{
-    width:42px;
-    height:42px;
+    width:44px; height:44px;
     border-radius:50%;
     border:1px solid rgba(244,236,216,.35);
-    background:rgba(20,15,31,.55);
+    background:rgba(20,15,31,.6);
+    -webkit-backdrop-filter:blur(6px);
     backdrop-filter:blur(6px);
     color:var(--gold-light);
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    display:flex; align-items:center; justify-content:center;
     cursor:pointer;
     transition:background .25s ease, transform .2s ease;
   }
-  .ctrl-btn:hover{ background:rgba(20,15,31,.8); transform:translateY(-1px); }
-  .ctrl-btn svg{ width:18px; height:18px; }
+  .ctrl-btn:hover{ background:rgba(20,15,31,.85); }
+  .ctrl-btn:active{ transform:scale(.94); }
 
   .eq{ display:flex; align-items:flex-end; gap:2px; height:14px; }
-  .eq span{
-    width:3px;
-    background:var(--gold-light);
-    display:inline-block;
-    animation:eq 1s ease-in-out infinite;
-  }
+  .eq span{ width:3px; background:var(--gold-light); animation:eq 1s ease-in-out infinite; }
   .eq span:nth-child(1){ animation-delay:-.6s; }
   .eq span:nth-child(2){ animation-delay:-.3s; }
-  .eq span:nth-child(3){ animation-delay:0s; }
-  @keyframes eq{
-    0%,100%{ height:4px; }
-    50%{ height:14px; }
-  }
+  @keyframes eq{ 0%,100%{ height:4px; } 50%{ height:14px; } }
   .muted .eq span{ animation-play-state:paused; height:4px; }
 
+  /* short / landscape phones: keep everything on screen */
+  @media (max-height:520px) and (orientation:landscape){
+    #scene{ gap:18px; }
+    #envelope{ width:min(56vw, 58vh, 320px); }
+    #reading-wrap{ align-items:flex-start; }
+  }
+
   @media (prefers-reduced-motion: reduce){
-    .star{ animation:none; opacity:.4; }
-    .prompt{ animation:none; }
-    .eq span{ animation:none; height:8px; }
-    #envelope-wrap, .env-flap, .letter-card, #reading, .wax-seal{ transition-duration:.25s; }
+    .star,.prompt,.eq span{ animation:none; }
+    .eq span{ height:8px; }
+    #envelope-wrap,.env-flap,.letter-card,#reading,#reading-wrap,.wax-seal,#scene{ transition-duration:.25s; }
   }
 </style>
 </head>
 <body>
 
-<div id="sky">
-  <div class="moonglow"></div>
-</div>
+<div id="sky"><div class="moonglow"></div></div>
 
 <div id="scene">
   <div id="envelope-wrap">
@@ -364,34 +315,50 @@
       </div>
     </div>
   </div>
-
   <div class="prompt">Kham tay touch kor</div>
 </div>
 
-<div id="reading" aria-live="polite">
-  <p class="letter-heading">For my misti gf,</p>
-  <div id="letter-body">
-    <p>My dearest bou,</p>
-    <p>
-      Pori amar, rege jayna pori r bor er opor. Tor jonno ei website the banalam, ar kichu kotha likhlam, tui jodi hasis.
-      Ami onek somoy bhabi amader hoyto bhogoban e dekha koriye diyeche. Tui hochis ekta choto misti sensitive mey ar ami hochi tor bor je sei sensitive heart ta ke sobsomoy protect kore rakhbe.
-      Tui jedin amake ha bolechilis, ami promise korechilam nijeke. Ei meytake ami amar hate majhe agle rakhbo. Tor ei sundor sensitive heart ta amar kache ekta hire r thekeo onek omullo. Sobtheke omullo bolte paris.
-      Bhogobaner tuli diye aka ekta angel ke ami peychi. Strong, kind, cute. Ekhono putul niye ghumai, eto cute amar gf biswas hoyna.
-      Ay amar buke matha rekhe ghuma. Ami to achi, keno chinta eto ei sensitive heart tar? Kothao konodin jabona. Ekbar amar hate jokhon niyechi, amar daitto sara jibon agle rakha.
-      Meyke abar ei chithi gulo dekhasna, or baba ke niye hasbe tahole 😔. Bolbe ei sob jinis likhte, ar ami bhabtam tumi ekta don.
-      Sasuri ke rossie ke dekhas, bolis amar husband diyeche 😉. Uni bolben dekhbi, tor husband eto bhalo, eto strong, rege jasna or opor. Or seba kor, or pith tipe de, oke khaiye de.
-    </p>
-    <p>
-      I love you sona. Tui jotota bhabis tar thekeo onek onek besi. Toke dekhle majhe majhe takiye thakte parina, jokhon dekhi ekjon eto kind, eto loving amake bhalobasche. Thank you baby. Aro 100 bochor shojjho kore nis sudhu tor soitan ta ke.
-    </p>
-    <p>Forever yours,</p>
-    <p class="signature">Soitan</p>
+<div id="reading-wrap">
+  <div id="reading" aria-live="polite">
+    <p class="letter-heading">For my misti gf,</p>
+    <div id="letter-body">
+      <p>My dearest bou,</p>
+      <p>
+        Pori amar, rege jayna pori r bor er opor. Tor jonno ei website the banalam, ar kichu kotha likhlam, tui jodi hasis.
+      </p>
+      <p>
+        Ami onek somoy bhabi amader hoyto bhogoban e dekha koriye diyeche. Tui hochis ekta choto misti sensitive mey ar ami hochi tor bor je sei sensitive heart ta ke sobsomoy protect kore rakhbe.
+      </p>
+      <p>
+        Tui jedin amake ha bolechilis, ami promise korechilam nijeke. Ei meytake ami amar hate majhe agle rakhbo. Tor ei sundor sensitive heart ta amar kache ekta hire r thekeo onek omullo. Sobtheke omullo bolte paris.
+      </p>
+      <p>
+        Bhogobaner tuli diye aka ekta angel ke ami peychi. Strong, kind, cute. Ekhono putul niye ghumai, eto cute amar gf biswas hoyna.
+      </p>
+      <p>
+        Ay amar buke matha rekhe ghuma. Ami to achi, keno chinta eto ei sensitive heart tar? Kothao konodin jabona. Ekbar amar hate jokhon niyechi, amar daitto sara jibon agle rakha.
+      </p>
+      <p>
+        Meyke abar ei chithi gulo dekhasna, or baba ke niye hasbe tahole 😔. Bolbe ei sob jinis likhte, ar ami bhabtam tumi ekta don.
+      </p>
+      <p>
+        Tor misti sundor hasi ta, tor mukh bhengano ta, tor chotto chotto jinis e cute bhabe mukh gomrano ta, chotto chotto jinis e eto khusi howa ta, tor sweet hehe haha hoho kore hasita. Prottek muhurte tui amar mone ekta pori r moto ghuris. Toke emni emni pori bolina.
+      <p>
+      <p>
+        Sasuri ke rossie ke dekhas, bolis amar husband diyeche 😉. Uni bolben dekhbi, tor husband eto bhalo, eto strong, rege jasna or opor. Or seba kor, or pith tipe de, oke khaiye de.
+      </p>
+      <p>
+        I love you sona. Tui jotota bhabis tar thekeo onek onek besi. Toke dekhle majhe majhe takiye thakte parina, jokhon dekhi ekjon eto kind, eto loving amake bhalobasche. Thank you baby. Aro 100 bochor shojjho kore nis sudhu tor soitan ta ke.
+      </p>
+      <p>Forever yours,</p>
+      <p class="signature">Soitan</p>
+    </div>
   </div>
 </div>
 
 <div id="controls">
   <button class="ctrl-btn" id="muteBtn" aria-label="Mute or unmute the song">
-    <div class="eq" id="eq"><span></span><span></span><span></span></div>
+    <div class="eq"><span></span><span></span><span></span></div>
   </button>
 </div>
 
@@ -400,14 +367,13 @@
 </audio>
 
 <script>
-  // Scatter a handful of soft stars across the sky
   const sky = document.getElementById('sky');
-  const STAR_COUNT = 70;
-  for (let i = 0; i < STAR_COUNT; i++) {
+  const starCount = window.innerWidth < 600 ? 45 : 70;
+  for (let i = 0; i < starCount; i++) {
     const s = document.createElement('div');
     s.className = 'star';
-    s.style.left = Math.random() * 100 + 'vw';
-    s.style.top = Math.random() * 100 + 'vh';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
     s.style.animationDelay = (Math.random() * 4) + 's';
     s.style.width = s.style.height = (Math.random() < .15 ? 3 : 2) + 'px';
     sky.appendChild(s);
@@ -421,26 +387,20 @@
   function openEnvelope() {
     if (opened) return;
     opened = true;
-
     envelope.classList.add('open');
 
-    // Play the song right on this user gesture so autoplay is allowed
     audio.volume = 0.85;
-    audio.play().catch(() => {
-      // If the browser blocks it or song.mp3 isn't present yet, fail quietly
-    });
+    audio.play().catch(() => {});
 
     setTimeout(() => {
       document.body.classList.add('letter-view');
+      window.scrollTo(0, 0);
     }, 1300);
   }
 
   envelope.addEventListener('click', openEnvelope);
   envelope.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      openEnvelope();
-    }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEnvelope(); }
   });
 
   muteBtn.addEventListener('click', () => {
