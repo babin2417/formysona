@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <!--
   Put your audio file in the SAME FOLDER as this file, named: song.mp3
-  (or change the src below in the <audio> tag)
 -->
 <html lang="en">
 <head>
@@ -16,16 +15,13 @@
     --bg-deep:#140f1f;
     --bg-mid:#2a1e3d;
     --bg-glow:#3e2c52;
-    --gold:#cba158;
     --gold-light:#ecd8a6;
     --cream:#f4ecd8;
     --cream-dark:#e3d6b3;
     --wax:#8f2436;
     --wax-dark:#6f1a29;
     --ink:#3a2e26;
-    --app-h:100vh;
   }
-  @supports (height:100dvh){ :root{ --app-h:100dvh; } }
 
   *{box-sizing:border-box;}
 
@@ -33,14 +29,12 @@
     margin:0;
     padding:0;
     width:100%;
-    min-height:var(--app-h);
+    height:100%;
     background:var(--bg-deep);
     font-family:"EB Garamond", serif;
     color:var(--cream);
-    overflow:hidden;
+    overflow:hidden;              /* the PAGE never scrolls; the letter box does */
   }
-  /* once the letter is showing, let the page scroll if the text is long */
-  body.letter-view{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
 
   /* ---------- Night sky ---------- */
   #sky{
@@ -49,6 +43,7 @@
     background:radial-gradient(ellipse at 50% 30%, var(--bg-glow) 0%, var(--bg-mid) 45%, var(--bg-deep) 100%);
     z-index:0;
     overflow:hidden;
+    pointer-events:none;
   }
   .star{
     position:absolute;
@@ -61,16 +56,14 @@
   @keyframes twinkle{ 0%,100%{opacity:.15;} 50%{opacity:.9;} }
   .moonglow{
     position:absolute;
-    top:6%;
-    left:50%;
+    top:6%; left:50%;
     width:min(120vw,520px);
     height:min(120vw,520px);
     transform:translateX(-50%);
     background:radial-gradient(circle, rgba(203,161,88,0.18) 0%, rgba(203,161,88,0) 70%);
-    pointer-events:none;
   }
 
-  /* ---------- Stage 1: envelope scene ---------- */
+  /* ---------- Stage 1: envelope ---------- */
   #scene{
     position:fixed;
     inset:0;
@@ -84,7 +77,13 @@
     perspective:1400px;
     transition:opacity .6s ease;
   }
-  body.letter-view #scene{ opacity:0; pointer-events:none; }
+  /* visibility + display so the faded-out layer can never block touches */
+  body.letter-view #scene{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+  body.letter-done #scene{ display:none; }
 
   .prompt{
     font-family:"Cormorant Garamond", serif;
@@ -98,7 +97,6 @@
   }
   @keyframes pulseHint{ 0%,100%{opacity:.55;} 50%{opacity:.95;} }
 
-  /* ---------- Envelope ---------- */
   #envelope-wrap{
     position:relative;
     transition:transform 1.1s cubic-bezier(.6,0,.2,1), opacity .9s ease;
@@ -120,10 +118,8 @@
 
   .env-shadow{
     position:absolute;
-    bottom:-7%;
-    left:6%;
-    width:88%;
-    height:10%;
+    bottom:-7%; left:6%;
+    width:88%; height:10%;
     background:radial-gradient(ellipse, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 70%);
     filter:blur(2px);
   }
@@ -156,8 +152,7 @@
   .env-flap{
     position:absolute;
     top:0; left:0;
-    width:100%;
-    height:62%;
+    width:100%; height:62%;
     background:linear-gradient(160deg, var(--cream) 0%, var(--cream-dark) 100%);
     clip-path:polygon(0 0, 100% 0, 50% 92%);
     transform-origin:top center;
@@ -194,31 +189,42 @@
     opacity:0;
     transition:transform 1.1s cubic-bezier(.5,0,.15,1) .15s, opacity .6s ease .15s;
   }
-
   #envelope.open .env-flap{ transform:rotateX(-178deg); z-index:1; }
   #envelope.open .wax-seal{ opacity:0; transform:translate(-50%,-50%) scale(.6); }
   #envelope.open .letter-card{ opacity:1; transform:translate(-50%,-58%) scale(1); }
 
-  /* ---------- Stage 2: the letter ---------- */
+  /* ---------- Stage 2: the letter — THIS is the scroll container ---------- */
   #reading-wrap{
-    position:relative;
+    position:fixed;
+    inset:0;
     z-index:3;
-    min-height:var(--app-h);
+    overflow-y:scroll;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+    scrollbar-width:none;
     display:flex;
-    align-items:center;
-    justify-content:center;
+    flex-direction:column;
     padding:clamp(20px,5vw,48px) clamp(14px,4vw,32px);
-    padding-top:max(clamp(20px,5vw,48px), calc(env(safe-area-inset-top) + 64px));
-    padding-bottom:max(clamp(20px,5vw,48px), env(safe-area-inset-bottom));
+    padding-top:max(76px, calc(env(safe-area-inset-top) + 76px));
+    padding-bottom:max(36px, calc(env(safe-area-inset-bottom) + 36px));
     opacity:0;
+    visibility:hidden;
     pointer-events:none;
     transition:opacity .9s ease .1s;
   }
-  body.letter-view #reading-wrap{ opacity:1; pointer-events:auto; }
+  #reading-wrap::-webkit-scrollbar{ display:none; }
+  body.letter-view #reading-wrap{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+  }
 
   #reading{
     width:100%;
     max-width:620px;
+    margin:auto;                 /* centered if short, scrolls if tall */
+    flex:0 0 auto;
     background:repeating-linear-gradient(var(--cream), var(--cream) 31px, #ece0c4 32px);
     background-color:var(--cream);
     color:var(--ink);
@@ -245,11 +251,28 @@
   }
   #letter-body p{ margin:0 0 1.1em 0; }
   .signature{
-    margin-top:1.2em;
+    margin:1.2em 0 0 0;
     font-family:"Petit Formal Script", cursive;
     font-size:clamp(26px,8vw,34px);
     color:var(--wax);
   }
+
+  /* scroll hint */
+  #more-cue{
+    position:fixed;
+    left:50%;
+    bottom:max(12px, env(safe-area-inset-bottom));
+    transform:translateX(-50%);
+    z-index:9;
+    color:var(--gold-light);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .5s ease;
+    animation:bob 1.8s ease-in-out infinite;
+  }
+  #more-cue.show{ opacity:.8; }
+  #more-cue svg{ width:24px; height:24px; filter:drop-shadow(0 2px 6px rgba(0,0,0,.7)); }
+  @keyframes bob{ 0%,100%{ transform:translate(-50%,0); } 50%{ transform:translate(-50%,5px); } }
 
   /* ---------- Controls ---------- */
   #controls{
@@ -275,7 +298,6 @@
     cursor:pointer;
     transition:background .25s ease, transform .2s ease;
   }
-  .ctrl-btn:hover{ background:rgba(20,15,31,.85); }
   .ctrl-btn:active{ transform:scale(.94); }
 
   .eq{ display:flex; align-items:flex-end; gap:2px; height:14px; }
@@ -285,15 +307,13 @@
   @keyframes eq{ 0%,100%{ height:4px; } 50%{ height:14px; } }
   .muted .eq span{ animation-play-state:paused; height:4px; }
 
-  /* short / landscape phones: keep everything on screen */
   @media (max-height:520px) and (orientation:landscape){
     #scene{ gap:18px; }
     #envelope{ width:min(56vw, 58vh, 320px); }
-    #reading-wrap{ align-items:flex-start; }
   }
 
   @media (prefers-reduced-motion: reduce){
-    .star,.prompt,.eq span{ animation:none; }
+    .star,.prompt,.eq span,#more-cue{ animation:none; }
     .eq span{ height:8px; }
     #envelope-wrap,.env-flap,.letter-card,#reading,#reading-wrap,.wax-seal,#scene{ transition-duration:.25s; }
   }
@@ -323,7 +343,7 @@
 </div>
 
 <div id="reading-wrap">
-  <div id="reading" aria-live="polite">
+  <div id="reading">
     <p class="letter-heading">For my misti gf,</p>
     <div id="letter-body">
       <p>My dearest bou,</p>
@@ -346,6 +366,9 @@
         Meyke abar ei chithi gulo dekhasna, or baba ke niye hasbe tahole 😔. Bolbe ei sob jinis likhte, ar ami bhabtam tumi ekta don.
       </p>
       <p>
+        Tor misti sundor hasi ta, tor mukh bhengano ta, tor chotto chotto jinis e cute bhabe mukh gomrano ta, chotto chotto jinis e eto khusi howa ta, tor sweet hehe haha hoho kore hasita. Prottek muhurte tui amar mone ekta pori r moto ghuris. Toke emni emni pori bolina.
+      </p>
+      <p>
         Sasuri ke rossie ke dekhas, bolis amar husband diyeche 😉. Uni bolben dekhbi, tor husband eto bhalo, eto strong, rege jasna or opor. Or seba kor, or pith tipe de, oke khaiye de.
       </p>
       <p>
@@ -355,6 +378,12 @@
       <p class="signature">Soitan</p>
     </div>
   </div>
+</div>
+
+<div id="more-cue" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 9l6 6 6-6"/>
+  </svg>
 </div>
 
 <div id="controls">
@@ -381,11 +410,20 @@
   }
 
   const envelope = document.getElementById('envelope');
+  const wrap = document.getElementById('reading-wrap');
+  const cue = document.getElementById('more-cue');
   const audio = document.getElementById('bgm');
   const muteBtn = document.getElementById('muteBtn');
   let opened = false;
 
-  function openEnvelope() {
+  function updateCue(){
+    if (!opened) return;
+    const scrollable = wrap.scrollHeight - wrap.clientHeight > 20;
+    const atBottom = wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 40;
+    cue.classList.toggle('show', scrollable && !atBottom);
+  }
+
+  function openEnvelope(){
     if (opened) return;
     opened = true;
     envelope.classList.add('open');
@@ -395,7 +433,10 @@
 
     setTimeout(() => {
       document.body.classList.add('letter-view');
-      window.scrollTo(0, 0);
+      wrap.scrollTop = 0;
+      updateCue();
+      // fully remove the envelope layer once its fade is done
+      setTimeout(() => document.body.classList.add('letter-done'), 800);
     }, 1300);
   }
 
@@ -403,6 +444,9 @@
   envelope.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEnvelope(); }
   });
+
+  wrap.addEventListener('scroll', updateCue, { passive:true });
+  window.addEventListener('resize', updateCue);
 
   muteBtn.addEventListener('click', () => {
     audio.muted = !audio.muted;
